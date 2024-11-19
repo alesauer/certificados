@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tabela Pesquisável de Certificados</title>
+    <!-- CSS do Grid.js -->
+    <link href="https://unpkg.com/gridjs/dist/theme/mermaid.min.css" rel="stylesheet" />
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            text-align: center;
+        }
+        #wrapper {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1 {
+            margin-bottom: 20px;
+        }
+
+
+        table: {
+            'font-size': '16px', /* Tamanho maior para texto */
+            'width': '90%', /* Aumenta a largura da tabela */
+            'margin': '0 auto', /* Centraliza a tabela */
+        }
+        th: {
+            'background-color': '#f4f4f4',
+            'text-align': 'left',
+            'padding': '12px', /* Maior espaçamento interno */
+        }
+        td: {
+            'padding': '12px', /* Maior espaçamento interno */
+            'border-bottom': '1px solid #ccc',
+        }
+
+
+
+
+    </style>
+</head>
+<body>
+    <div id="wrapper">
+        <h1>Tabela de Certificados</h1>
+        <!-- Div onde o Grid.js será renderizado -->
+        <div id="grid"></div>
+    </div>
+
+    <!-- JavaScript do Grid.js -->
+    <script src="https://unpkg.com/gridjs/dist/gridjs.umd.js"></script>
+    <script>
+        // Função para carregar e processar o arquivo CSV
+        async function loadCSV(url) {
+            const response = await fetch(url);
+            const text = await response.text();
+            // Divide as linhas e remove linhas vazias
+            const rows = text.split('\n').filter(row => row.trim() !== '');
+            // Converte cada linha para um array baseado no delimitador ";"
+            return rows.map(row => row.split(';'));
+        }
+
+        // Carrega o arquivo certificados.csv e renderiza a tabela
+        loadCSV('certificados.csv').then(data => {
+            new gridjs.Grid({
+                columns: ['Nome Completo', 'Hash', 'Data'], // Define os cabeçalhos da tabela
+                data: data, // Dados carregados do CSV
+                search: true, // Ativa a pesquisa
+                pagination: {
+                    enabled: true, // Ativa a paginação
+                    limit: 5, // Define o número de linhas por página
+                },
+                sort: true, // Ativa a ordenação das colunas
+                style: {
+                    table: {
+                        'font-size': '14px',
+                        'border-collapse': 'collapse',
+                        'width': '100%',
+                    },
+                    th: {
+                        'background-color': '#f4f4f4',
+                        'text-align': 'left',
+                        'padding': '10px',
+                    },
+                    td: {
+                        'padding': '10px',
+                        'border-bottom': '1px solid #ccc',
+                    },
+                },
+            }).render(document.getElementById('grid')); // Renderiza na div com id "grid"
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerar Certificado</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-image: url('fundo.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+        }
+        .container {
+            text-align: center;
+            max-width: 400px;
+            background-color: rgba(255, 255, 255, 0.8); /* Fundo branco semi-transparente */
+            padding: 20px;
+            border-radius: 10px;
+        }
+        .btn-custom {
+            width: 100%;
+        }
+        .form-group img {
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Imagem -->
+        <div class="form-group mb-4">
+            <img src="simplifica.png" alt="Simplifica Logo">
+        </div>
+
+        <!-- Formulário -->
+        <form action="geracertificado.php" method="post">
+            <!-- Campo de texto -->
+            <div class="form-group mb-3">
+                <input type="text" class="form-control" id="nomecompleto" name="nomecompleto" placeholder="Digite seu nome completo" required>
+            </div>
+            <!-- Botão de submit -->
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary btn-custom">Gerar Certificado</button>
+            </div>
+        </form>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
