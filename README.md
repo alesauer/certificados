@@ -1,4 +1,157 @@
-# Gerador de Certificados - Simplifica Treinamentos
+# Gerador de Certificados — Simplifica Treinamentos
+
+Sistema web completo para emissão de certificados em PDF, com painel administrativo, múltiplas turmas e página pública customizável.
+
+---
+
+## Stack
+
+| Camada | Tecnologia |
+|---|---|
+| Backend | Python 3.12 + Flask 3 + Gunicorn |
+| Frontend | React 18 + Vite 5 + TypeScript + Bootstrap 5 |
+| Banco de dados | Supabase (PostgreSQL) |
+| Autenticação | Supabase Auth |
+| Armazenamento | Supabase Storage |
+| PDF | ReportLab + Pillow |
+| Gráficos | Recharts |
+| Infraestrutura | Docker Compose + Nginx |
+
+---
+
+## Funcionalidades
+
+### Área pública
+- Página de emissão com título, subtítulo, cor e imagem de fundo customizáveis por turma
+- Geração de PDF A4 paisagem com imagem de fundo e nome posicionado
+- Hash SHA-256 único por participante (evita emissão duplicada)
+- Download automático do certificado em PDF
+
+### Painel administrativo (`/admin`)
+- Login via Supabase Auth
+- **Dashboard** — KPIs (total emitidos, turma ativa, hoje, semana), atalhos rápidos, últimos certificados
+- **Turmas** — CRUD completo, configuração de posição/tamanho do nome no PDF, upload de imagem de fundo, customização da página pública
+- **Certificados** — listagem, busca, exclusão, exportação CSV
+- **Estatísticas** — gráficos de emissões por dia, por turma, por hora e top 10 dias
+
+---
+
+## Estrutura do projeto
+
+```
+certificados/
+├── backend/
+│   ├── app/
+│   │   ├── routes/
+│   │   │   ├── admin.py       # Endpoints protegidos (turmas, certificados, estatísticas)
+│   │   │   └── public.py      # Endpoints públicos (config, gerar PDF)
+│   │   └── services/
+│   │       ├── auth_service.py
+│   │       ├── pdf_service.py  # ReportLab + cache de imagens
+│   │       └── supabase_service.py
+│   ├── Dockerfile
+│   └── requirements.txt
+├── frontend/
+│   ├── src/
+│   │   ├── pages/
+│   │   │   ├── Home.tsx                  # Página pública de emissão
+│   │   │   └── admin/
+│   │   │       ├── Dashboard.tsx
+│   │   │       ├── Turmas.tsx
+│   │   │       ├── Certificados.tsx
+│   │   │       ├── Estatisticas.tsx
+│   │   │       └── Login.tsx
+│   │   ├── components/
+│   │   └── lib/
+│   │       ├── api.ts          # Funções de chamada à API
+│   │       └── supabase.ts
+│   ├── nginx.conf
+│   └── Dockerfile
+├── docker-compose.yml
+└── .env                        # Não versionado
+```
+
+---
+
+## Configuração
+
+### 1. Variáveis de ambiente
+
+Crie o arquivo `.env` na raiz:
+
+```env
+SUPABASE_URL=https://<projeto>.supabase.co
+SUPABASE_ANON_KEY=<anon_key>
+SUPABASE_SERVICE_KEY=<service_key>
+
+VITE_SUPABASE_URL=https://<projeto>.supabase.co
+VITE_SUPABASE_ANON_KEY=<anon_key>
+VITE_API_URL=
+```
+
+### 2. Tabelas no Supabase
+
+```sql
+CREATE TABLE turmas (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  nome text NOT NULL,
+  descricao text DEFAULT '',
+  ativa boolean DEFAULT false,
+  imagem_url text DEFAULT '',
+  nome_pos_x float DEFAULT 148,
+  nome_pos_y float DEFAULT 105,
+  nome_fonte_tam int DEFAULT 36,
+  nome_maiusculo boolean DEFAULT true,
+  pagina_titulo text DEFAULT 'Emissão de Certificados',
+  pagina_subtitulo text DEFAULT 'Preencha os dados abaixo para gerar seu certificado',
+  pagina_cor_fundo text DEFAULT '#0f3460',
+  pagina_img_url text DEFAULT '',
+  created_at timestamptz DEFAULT now()
+);
+
+CREATE TABLE certificados (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  turma_id uuid REFERENCES turmas(id) ON DELETE CASCADE,
+  nome_completo text NOT NULL,
+  hash_sha256 text UNIQUE NOT NULL,
+  data_emissao timestamptz DEFAULT now()
+);
+```
+
+### 3. Storage
+
+Criar bucket `imagens-fundo` como **público** no Supabase Storage.
+
+---
+
+## Executar com Docker
+
+```bash
+# Subir
+sudo docker compose up --build -d
+
+# Parar
+sudo docker compose down
+
+# Ver logs
+sudo docker logs certificados_backend
+sudo docker logs certificados_frontend
+```
+
+A aplicação ficará disponível em `http://localhost`.
+
+---
+
+## Deploy (Oracle Cloud Free Tier)
+
+1. Liberar porta **80** no Security List da instância
+2. Liberar no firewall do SO:
+   ```bash
+   sudo iptables -I INPUT -p tcp --dport 80 -j ACCEPT
+   ```
+3. No Cloudflare: DNS tipo `A` apontando para o IP da Oracle com proxy ativado (SSL Flexible)
+4. Clonar o repositório, criar o `.env` e rodar `sudo docker compose up --build -d`
+
 
 Este é um projeto para gerar certificados personalizados de forma dinâmica utilizando PHP e FPDF. Ele inclui uma interface web amigável, baseada em Bootstrap, para facilitar o uso.
 
