@@ -85,8 +85,8 @@ export default function Home() {
         ) : (
           <>
             <div className="text-center mb-4">
-              <i className="bi bi-patch-check-fill text-primary" style={{ fontSize: 48 }} />
-              <h4 className="mt-2 fw-bold">{config.pagina_titulo}</h4>
+              <img src="/simplifica.png" alt="Simplifica Treinamentos" style={{ height: 80, objectFit: "contain" }} className="mb-3" />
+              <h4 className="fw-bold">{config.pagina_titulo}</h4>
               <p className="text-muted small">{config.pagina_subtitulo}</p>
             </div>
 

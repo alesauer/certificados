@@ -28,8 +28,8 @@ export default function Login() {
     >
       <div className="card shadow p-4" style={{ maxWidth: 380, width: "100%", borderRadius: 16 }}>
         <div className="text-center mb-4">
-          <i className="bi bi-shield-lock-fill text-primary" style={{ fontSize: 40 }} />
-          <h5 className="mt-2 fw-bold">Área Administrativa</h5>
+          <img src="/simplifica.png" alt="Simplifica Treinamentos" style={{ height: 80, objectFit: "contain" }} className="mb-3" />
+          <h6 className="fw-bold text-muted">Área Administrativa</h6>
         </div>
         <form onSubmit={handleLogin}>
           <div className="mb-3">
