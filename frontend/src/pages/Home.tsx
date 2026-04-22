@@ -141,71 +141,72 @@ export default function Home() {
         className="card shadow-lg p-4 position-relative"
         style={{ maxWidth: 460, width: "100%", borderRadius: 16, zIndex: 1 }}
       >
-        {semTurma ? (
-          <div className="text-center py-4">
-            <i className="bi bi-exclamation-circle text-warning" style={{ fontSize: 48 }} />
-            <h5 className="mt-3">Nenhuma turma ativa no momento</h5>
-            <p className="text-muted">Entre em contato com o organizador.</p>
-          </div>
-        ) : (
-          <>
-            <div className="text-center mb-4">
-              <img src="/simplifica.png" alt="Simplifica Treinamentos" style={{ height: 80, objectFit: "contain" }} className="mb-3" />
-              <h4 className="fw-bold">{config.pagina_titulo}</h4>
-              <p className="text-muted small">{config.pagina_subtitulo}</p>
+        {semTurma && (
+          <div className="alert alert-warning d-flex align-items-center gap-2 mb-4 py-2 px-3" role="alert" style={{ borderRadius: 10 }}>
+            <i className="bi bi-lock-fill fs-5 flex-shrink-0" />
+            <div className="small">
+              <strong>Emissão encerrada.</strong> Não há nenhuma turma aberta para emissão de certificados no momento.
             </div>
-
-            <form onSubmit={handleSubmit} noValidate>
-              <div className="mb-3">
-                <label className="form-label fw-semibold">Nome Completo</label>
-                <input
-                  type="text"
-                  className={`form-control form-control-lg ${nomeErro ? "is-invalid" : ""}`}
-                  placeholder="Digite seu nome e sobrenome"
-                  value={nome}
-                  onChange={handleNomeChange}
-                  required
-                />
-                {nomeErro && <div className="invalid-feedback">{nomeErro}</div>}
-              </div>
-
-              {config.cpf_obrigatorio && (
-                <div className="mb-3">
-                  <label className="form-label fw-semibold">CPF</label>
-                  <input
-                    type="text"
-                    className={`form-control form-control-lg ${cpfErro ? "is-invalid" : ""}`}
-                    placeholder="000.000.000-00"
-                    value={cpf}
-                    onChange={handleCpfChange}
-                    inputMode="numeric"
-                    maxLength={14}
-                    required
-                  />
-                  {cpfErro && <div className="invalid-feedback">{cpfErro}</div>}
-                </div>
-              )}
-
-              <button
-                type="submit"
-                className="btn btn-primary w-100 btn-lg mt-2"
-                disabled={loading}
-              >
-                {loading ? (
-                  <>
-                    <span className="spinner-border spinner-border-sm me-2" />
-                    Gerando...
-                  </>
-                ) : (
-                  <>
-                    <i className="bi bi-download me-2" />
-                    Gerar e Baixar Certificado
-                  </>
-                )}
-              </button>
-            </form>
-          </>
+          </div>
         )}
+
+        <div className="text-center mb-4">
+          <img src="/simplifica.png" alt="Simplifica Treinamentos" style={{ height: 80, objectFit: "contain" }} className="mb-3" />
+          <h4 className="fw-bold">{config.pagina_titulo}</h4>
+          <p className="text-muted small">{config.pagina_subtitulo}</p>
+        </div>
+
+        <form onSubmit={handleSubmit} noValidate>
+          <div className="mb-3">
+            <label className="form-label fw-semibold">Nome Completo</label>
+            <input
+              type="text"
+              className={`form-control form-control-lg ${nomeErro ? "is-invalid" : ""}`}
+              placeholder="Digite seu nome e sobrenome"
+              value={nome}
+              onChange={handleNomeChange}
+              required
+              disabled={semTurma}
+            />
+            {nomeErro && <div className="invalid-feedback">{nomeErro}</div>}
+          </div>
+
+          {config.cpf_obrigatorio && (
+            <div className="mb-3">
+              <label className="form-label fw-semibold">CPF</label>
+              <input
+                type="text"
+                className={`form-control form-control-lg ${cpfErro ? "is-invalid" : ""}`}
+                placeholder="000.000.000-00"
+                value={cpf}
+                onChange={handleCpfChange}
+                inputMode="numeric"
+                maxLength={14}
+                required
+                disabled={semTurma}
+              />
+              {cpfErro && <div className="invalid-feedback">{cpfErro}</div>}
+            </div>
+          )}
+
+          <button
+            type="submit"
+            className="btn btn-primary w-100 btn-lg mt-2"
+            disabled={loading || semTurma}
+          >
+            {loading ? (
+              <>
+                <span className="spinner-border spinner-border-sm me-2" />
+                Gerando...
+              </>
+            ) : (
+              <>
+                <i className="bi bi-download me-2" />
+                Gerar e Baixar Certificado
+              </>
+            )}
+          </button>
+        </form>
       </div>
     </div>
   );
