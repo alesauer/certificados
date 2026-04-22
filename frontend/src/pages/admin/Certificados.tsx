@@ -3,7 +3,7 @@ import AdminLayout from "../../components/AdminLayout";
 import {
   adminGetCertificados,
   adminDeletarCertificado,
-  adminExportarCSVUrl,
+  adminExportarCSV,
   adminGetTurmas,
 } from "../../lib/api";
 import { toast } from "react-toastify";
@@ -27,7 +27,25 @@ export default function Certificados() {
   const [filtroTurma, setFiltroTurma] = useState("");
   const [busca, setBusca] = useState("");
   const [pagina, setPagina] = useState(1);
+  const [exportando, setExportando] = useState(false);
   const POR_PAGINA = 15;
+
+  async function handleExportarCSV() {
+    setExportando(true);
+    try {
+      const blob = await adminExportarCSV(filtroTurma || undefined);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "certificados.csv";
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      toast.error("Erro ao exportar CSV");
+    } finally {
+      setExportando(false);
+    }
+  }
 
   async function load() {
     try {
@@ -67,15 +85,17 @@ export default function Certificados() {
     <AdminLayout>
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h4 className="fw-bold mb-0">Todos os Certificados</h4>
-        <a
-          href={adminExportarCSVUrl(filtroTurma || undefined)}
+        <button
           className="btn btn-sm btn-outline-success"
-          target="_blank"
-          rel="noreferrer"
+          onClick={handleExportarCSV}
+          disabled={exportando}
         >
-          <i className="bi bi-download me-2" />
-          Exportar CSV
-        </a>
+          {exportando ? (
+            <><span className="spinner-border spinner-border-sm me-1" />Exportando...</>
+          ) : (
+            <><i className="bi bi-download me-2" />Exportar CSV</>
+          )}
+        </button>
       </div>
 
       <div className="row g-2 mb-3">

@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import AdminLayout from "../../components/AdminLayout";
-import { adminGetCertificados, adminDeletarCertificado, adminExportarCSVUrl } from "../../lib/api";
-import { adminGetTurmas } from "../../lib/api";
+import { adminGetCertificados, adminDeletarCertificado, adminExportarCSV, adminGetTurmas } from "../../lib/api";
 import { toast } from "react-toastify";
 
 interface Cert {
@@ -17,6 +16,24 @@ export default function TurmaDetalhe() {
   const [certs, setCerts] = useState<Cert[]>([]);
   const [nomeTurma, setNomeTurma] = useState("");
   const [busca, setBusca] = useState("");
+  const [exportando, setExportando] = useState(false);
+
+  async function handleExportarCSV() {
+    setExportando(true);
+    try {
+      const blob = await adminExportarCSV(id);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `certificados_${nomeTurma || id}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      toast.error("Erro ao exportar CSV");
+    } finally {
+      setExportando(false);
+    }
+  }
 
   async function load() {
     try {
@@ -56,15 +73,17 @@ export default function TurmaDetalhe() {
           <i className="bi bi-arrow-left" />
         </Link>
         <h4 className="fw-bold mb-0">Certificados — {nomeTurma}</h4>
-        <a
-          href={adminExportarCSVUrl(id)}
+        <button
           className="btn btn-sm btn-outline-success ms-auto"
-          target="_blank"
-          rel="noreferrer"
+          onClick={handleExportarCSV}
+          disabled={exportando}
         >
-          <i className="bi bi-download me-2" />
-          Exportar CSV
-        </a>
+          {exportando ? (
+            <><span className="spinner-border spinner-border-sm me-1" />Exportando...</>
+          ) : (
+            <><i className="bi bi-download me-2" />Exportar CSV</>
+          )}
+        </button>
       </div>
 
       <div className="mb-3">

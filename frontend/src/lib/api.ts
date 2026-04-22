@@ -108,9 +108,12 @@ export async function adminDeletarCertificado(id: string) {
   if (!res.ok) throw new Error("Erro ao deletar certificado");
 }
 
-export function adminExportarCSVUrl(turmaId?: string) {
+export async function adminExportarCSV(turmaId?: string) {
+  const headers = await authHeaders();
   const params = turmaId ? `?turma_id=${turmaId}` : "";
-  return `${API_URL}/api/admin/certificados/exportar${params}`;
+  const res = await fetch(`${API_URL}/api/admin/certificados/exportar${params}`, { headers });
+  if (!res.ok) throw new Error("Erro ao exportar CSV");
+  return res.blob();
 }
 
 // ─── Admin — Estatísticas ──────────────────────────────────
