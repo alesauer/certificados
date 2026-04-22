@@ -22,11 +22,22 @@ def get_config():
     turma = _get_turma_ativa()
     if not turma:
         return jsonify({"error": "Nenhuma turma ativa"}), 404
+    # Busca configurações globais
+    client = get_service_client()
+    cpf_obrigatorio = False
+    try:
+        cfg = client.table("configuracoes").select("cpf_obrigatorio").eq("id", 1).execute()
+        if cfg.data:
+            cpf_obrigatorio = cfg.data[0].get("cpf_obrigatorio", False)
+    except Exception:
+        pass
+
     return jsonify({
         "pagina_titulo": turma.get("pagina_titulo") or "Emissão de Certificados",
         "pagina_subtitulo": turma.get("pagina_subtitulo") or "Preencha os dados abaixo para gerar seu certificado",
         "pagina_cor_fundo": turma.get("pagina_cor_fundo") or "#0f3460",
         "pagina_img_url": turma.get("pagina_img_url") or "",
+        "cpf_obrigatorio": cpf_obrigatorio,
     }), 200
 
 
@@ -35,6 +46,7 @@ def gerar_certificado():
     """Valida, gera o PDF e registra o certificado para a turma ativa."""
     data = request.get_json(force=True)
     nome = (data.get("nome_completo") or "").strip()
+    cpf = (data.get("cpf") or "").strip()
 
     if not nome:
         return jsonify({"error": "Nome é obrigatório"}), 400
@@ -42,6 +54,21 @@ def gerar_certificado():
     turma = _get_turma_ativa()
     if not turma:
         return jsonify({"error": "Nenhuma turma ativa no momento"}), 404
+
+    # Valida CPF se obrigatório
+    client = get_service_client()
+    cpf_obrigatorio = False
+    try:
+        cfg = client.table("configuracoes").select("cpf_obrigatorio").eq("id", 1).execute()
+        if cfg.data:
+            cpf_obrigatorio = cfg.data[0].get("cpf_obrigatorio", False)
+    except Exception:
+        pass
+
+    if cpf_obrigatorio:
+        cpf_digits = "".join(filter(str.isdigit, cpf))
+        if len(cpf_digits) != 11:
+            return jsonify({"error": "CPF inválido"}), 400
 
     turma_id = turma["id"]
 

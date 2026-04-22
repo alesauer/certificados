@@ -299,3 +299,36 @@ def estatisticas():
         "grafico_top_dias": grafico_top_dias,
         "recentes": recentes,
     }), 200
+
+
+# ──────────────────────────────────────────────
+# CONFIGURAÇÕES
+# ──────────────────────────────────────────────
+
+@admin_bp.route("/configuracoes", methods=["GET"])
+@require_auth
+def get_configuracoes():
+    client = get_service_client()
+    try:
+        res = client.table("configuracoes").select("*").eq("id", 1).execute()
+        if res.data:
+            return jsonify(res.data[0]), 200
+    except Exception:
+        pass
+    return jsonify({"id": 1, "cpf_obrigatorio": False}), 200
+
+
+@admin_bp.route("/configuracoes", methods=["PUT"])
+@require_auth
+def salvar_configuracoes():
+    data = request.get_json(force=True)
+    payload = {
+        "id": 1,
+        "cpf_obrigatorio": bool(data.get("cpf_obrigatorio", False)),
+    }
+    client = get_service_client()
+    try:
+        res = client.table("configuracoes").upsert(payload).execute()
+        return jsonify(res.data[0] if res.data else payload), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500

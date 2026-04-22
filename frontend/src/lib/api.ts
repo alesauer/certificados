@@ -18,11 +18,11 @@ export async function getConfigPublica() {
   return res.json();
 }
 
-export async function gerarCertificado(nome_completo: string) {
+export async function gerarCertificado(nome_completo: string, cpf?: string) {
   const res = await fetch(`${API_URL}/api/certificados/gerar`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ nome_completo }),
+    body: JSON.stringify({ nome_completo, cpf }),
   });
   if (res.status === 409) {
     const err = await res.json();
@@ -134,5 +134,24 @@ export async function adminGetEstatisticas() {
   const headers = await authHeaders();
   const res = await fetch(`${API_URL}/api/admin/estatisticas`, { headers });
   if (!res.ok) throw new Error("Erro ao buscar estatísticas");
+  return res.json();
+}
+
+// ─── Admin — Configurações ─────────────────────────────────
+export async function adminGetConfiguracoes() {
+  const headers = await authHeaders();
+  const res = await fetch(`${API_URL}/api/admin/configuracoes`, { headers });
+  if (!res.ok) throw new Error("Erro ao buscar configurações");
+  return res.json();
+}
+
+export async function adminSalvarConfiguracoes(data: object) {
+  const headers = await authHeaders();
+  const res = await fetch(`${API_URL}/api/admin/configuracoes`, {
+    method: "PUT",
+    headers: { ...headers, "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error("Erro ao salvar configurações");
   return res.json();
 }

@@ -6,6 +6,7 @@ import Turmas from "./pages/admin/Turmas";
 import TurmaDetalhe from "./pages/admin/TurmaDetalhe";
 import Certificados from "./pages/admin/Certificados";
 import Estatisticas from "./pages/admin/Estatisticas";
+import Configuracoes from "./pages/admin/Configuracoes";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 export default function App() {
@@ -57,6 +58,15 @@ export default function App() {
           element={
             <ProtectedRoute>
               <Estatisticas />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/configuracoes"
+          element={
+            <ProtectedRoute>
+              <Configuracoes />
             </ProtectedRoute>
           }
         />

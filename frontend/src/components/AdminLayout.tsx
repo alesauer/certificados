@@ -16,6 +16,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     { to: "/admin/turmas", icon: "bi-collection", label: "Turmas" },
     { to: "/admin/certificados", icon: "bi-award", label: "Certificados" },
     { to: "/admin/estatisticas", icon: "bi-bar-chart-line", label: "Estatísticas" },
+    { to: "/admin/configuracoes", icon: "bi-gear-fill", label: "Configurações" },
   ];
 
   return (
