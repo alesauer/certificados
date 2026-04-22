@@ -37,10 +37,6 @@ def criar_turma():
         "nome_pos_y": data.get("nome_pos_y", 105),
         "nome_fonte_tam": data.get("nome_fonte_tam", 36),
         "nome_maiusculo": data.get("nome_maiusculo", True),
-        "pagina_titulo": data.get("pagina_titulo", "Emissão de Certificados"),
-        "pagina_subtitulo": data.get("pagina_subtitulo", "Preencha os dados abaixo para gerar seu certificado"),
-        "pagina_cor_fundo": data.get("pagina_cor_fundo", "#0f3460"),
-        "pagina_img_url": data.get("pagina_img_url", ""),
     }
     if not payload["nome"]:
         return jsonify({"error": "Nome da turma é obrigatório"}), 400
@@ -59,8 +55,7 @@ def criar_turma():
 @require_auth
 def editar_turma(turma_id):
     data = request.get_json(force=True)
-    allowed = ["nome", "descricao", "ativa", "imagem_url", "nome_pos_x", "nome_pos_y", "nome_fonte_tam", "nome_maiusculo",
-               "pagina_titulo", "pagina_subtitulo", "pagina_cor_fundo", "pagina_img_url"]
+    allowed = ["nome", "descricao", "ativa", "imagem_url", "nome_pos_x", "nome_pos_y", "nome_fonte_tam", "nome_maiusculo"]
     payload = {k: v for k, v in data.items() if k in allowed}
 
     client = get_service_client()
@@ -309,13 +304,21 @@ def estatisticas():
 @require_auth
 def get_configuracoes():
     client = get_service_client()
+    defaults = {
+        "id": 1,
+        "cpf_obrigatorio": False,
+        "pagina_titulo": "Emissão de Certificados",
+        "pagina_subtitulo": "Preencha os dados abaixo para gerar seu certificado",
+        "pagina_cor_fundo": "#0f3460",
+        "pagina_img_url": "",
+    }
     try:
         res = client.table("configuracoes").select("*").eq("id", 1).execute()
         if res.data:
-            return jsonify(res.data[0]), 200
+            return jsonify({**defaults, **res.data[0]}), 200
     except Exception:
         pass
-    return jsonify({"id": 1, "cpf_obrigatorio": False}), 200
+    return jsonify(defaults), 200
 
 
 @admin_bp.route("/configuracoes", methods=["PUT"])
@@ -325,6 +328,10 @@ def salvar_configuracoes():
     payload = {
         "id": 1,
         "cpf_obrigatorio": bool(data.get("cpf_obrigatorio", False)),
+        "pagina_titulo": data.get("pagina_titulo", "Emissão de Certificados"),
+        "pagina_subtitulo": data.get("pagina_subtitulo", "Preencha os dados abaixo para gerar seu certificado"),
+        "pagina_cor_fundo": data.get("pagina_cor_fundo", "#0f3460"),
+        "pagina_img_url": data.get("pagina_img_url", ""),
     }
     client = get_service_client()
     try:
@@ -332,3 +339,29 @@ def salvar_configuracoes():
         return jsonify(res.data[0] if res.data else payload), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+@admin_bp.route("/configuracoes/upload-imagem-pagina", methods=["POST"])
+@require_auth
+def upload_imagem_pagina_config():
+    """Upload da imagem de fundo da página pública (configuração global)."""
+    if "imagem" not in request.files:
+        return jsonify({"error": "Nenhum arquivo enviado"}), 400
+    import os, time
+    file = request.files["imagem"]
+    ext = file.filename.rsplit('.', 1)[-1].lower() if '.' in file.filename else 'jpg'
+    filename = f"pagina_config_{int(time.time())}.{ext}"
+    file_bytes = file.read()
+    content_type = file.content_type or f"image/{ext}"
+    client = get_service_client()
+    try:
+        client.storage.from_("imagens-fundo").upload(
+            path=filename,
+            file=file_bytes,
+            file_options={"content-type": content_type},
+        )
+    except Exception as e:
+        return jsonify({"error": f"Erro no upload: {str(e)}"}), 500
+    url = f"{os.getenv('SUPABASE_URL')}/storage/v1/object/public/imagens-fundo/{filename}"
+    client.table("configuracoes").upsert({"id": 1, "pagina_img_url": url}).execute()
+    return jsonify({"pagina_img_url": url}), 200

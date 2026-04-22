@@ -6,7 +6,6 @@ import {
   adminEditarTurma,
   adminDeletarTurma,
   adminUploadImagem,
-  adminUploadImagemPagina,
 } from "../../lib/api";
 import { toast } from "react-toastify";
 import { Link } from "react-router-dom";
@@ -21,10 +20,6 @@ interface Turma {
   nome_pos_y: number;
   nome_fonte_tam: number;
   nome_maiusculo: boolean;
-  pagina_titulo: string;
-  pagina_subtitulo: string;
-  pagina_cor_fundo: string;
-  pagina_img_url: string;
   certificados?: { count: number }[];
 }
 
@@ -37,10 +32,6 @@ const EMPTY: Omit<Turma, "id" | "certificados"> = {
   nome_pos_y: 105,
   nome_fonte_tam: 36,
   nome_maiusculo: true,
-  pagina_titulo: "Emissão de Certificados",
-  pagina_subtitulo: "Preencha os dados abaixo para gerar seu certificado",
-  pagina_cor_fundo: "#0f3460",
-  pagina_img_url: "",
 };
 
 export default function Turmas() {
@@ -50,7 +41,6 @@ export default function Turmas() {
   const [form, setForm] = useState({ ...EMPTY });
   const [saving, setSaving] = useState(false);
   const [uploadingId, setUploadingId] = useState<string | null>(null);
-  const [uploadingPaginaId, setUploadingPaginaId] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   async function load() {
@@ -81,10 +71,6 @@ export default function Turmas() {
       nome_pos_y: t.nome_pos_y,
       nome_fonte_tam: t.nome_fonte_tam,
       nome_maiusculo: t.nome_maiusculo,
-      pagina_titulo: t.pagina_titulo || "Emissão de Certificados",
-      pagina_subtitulo: t.pagina_subtitulo || "Preencha os dados abaixo para gerar seu certificado",
-      pagina_cor_fundo: t.pagina_cor_fundo || "#0f3460",
-      pagina_img_url: t.pagina_img_url || "",
     });
     setShowModal(true);
   }
@@ -161,22 +147,6 @@ export default function Turmas() {
       toast.error(err instanceof Error ? err.message : "Erro ao fazer upload");
     } finally {
       setUploadingId(null);
-    }
-  }
-
-  async function handleUploadPagina(turmaId: string, file: File) {
-    const erro = validarArquivo(file);
-    if (erro) { toast.error(erro); return; }
-    setUploadingPaginaId(turmaId);
-    try {
-      const res = await adminUploadImagemPagina(turmaId, file);
-      setForm((f) => ({ ...f, pagina_img_url: res.pagina_img_url }));
-      toast.success("Imagem de fundo da página atualizada");
-      load();
-    } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "Erro ao fazer upload da imagem da página");
-    } finally {
-      setUploadingPaginaId(null);
     }
   }
 
@@ -434,130 +404,7 @@ export default function Turmas() {
                     </small>
                   </div>
 
-                  {/* ── Personalização da Página Pública ── */}
-                  <div className="col-12">
-                    <hr />
-                    <h6 className="fw-semibold">
-                      <i className="bi bi-palette me-2" />
-                      Página Pública de Emissão
-                    </h6>
-                    <small className="text-muted">Aparece na tela que o participante acessa para gerar o certificado.</small>
-                  </div>
 
-                  <div className="col-12">
-                    <label className="form-label">Título da página</label>
-                    <input
-                      className="form-control"
-                      value={form.pagina_titulo}
-                      onChange={(e) => setForm({ ...form, pagina_titulo: e.target.value })}
-                      placeholder="ex: Emissão de Certificados"
-                    />
-                  </div>
-                  <div className="col-12">
-                    <label className="form-label">Subtítulo / Instrução</label>
-                    <input
-                      className="form-control"
-                      value={form.pagina_subtitulo}
-                      onChange={(e) => setForm({ ...form, pagina_subtitulo: e.target.value })}
-                      placeholder="ex: Preencha os dados abaixo para gerar seu certificado"
-                    />
-                  </div>
-
-                  <div className="col-md-4">
-                    <label className="form-label">Cor de fundo</label>
-                    <div className="input-group">
-                      <input
-                        type="color"
-                        className="form-control form-control-color"
-                        value={form.pagina_cor_fundo}
-                        onChange={(e) => setForm({ ...form, pagina_cor_fundo: e.target.value, pagina_img_url: "" })}
-                        title="Cor de fundo da página"
-                      />
-                      <input
-                        type="text"
-                        className="form-control"
-                        value={form.pagina_cor_fundo}
-                        onChange={(e) => setForm({ ...form, pagina_cor_fundo: e.target.value })}
-                      />
-                    </div>
-                    <small className="text-muted">Usada quando não há imagem de fundo</small>
-                  </div>
-
-                  <div className="col-md-8">
-                    <label className="form-label">Imagem de fundo da página</label>
-                    <div className="d-flex align-items-center gap-2">
-                      {form.pagina_img_url && (
-                        <img
-                          src={form.pagina_img_url}
-                          alt="fundo pagina"
-                          style={{ height: 48, borderRadius: 6, objectFit: "cover" }}
-                        />
-                      )}
-                      {editando ? (
-                        <label className="btn btn-outline-secondary btn-sm">
-                          <i className="bi bi-upload me-1" />
-                          {form.pagina_img_url ? "Trocar imagem" : "Upload imagem de fundo"}
-                          <input
-                            type="file"
-                            accept="image/*"
-                            hidden
-                            onChange={(e) => {
-                              const f = e.target.files?.[0];
-                              if (f) handleUploadPagina(editando.id, f);
-                              e.target.value = "";
-                            }}
-                          />
-                          {uploadingPaginaId === editando.id && (
-                            <span className="spinner-border spinner-border-sm ms-1" />
-                          )}
-                        </label>
-                      ) : (
-                        <small className="text-muted">Salve a turma primeiro, depois faça o upload</small>
-                      )}
-                      {form.pagina_img_url && (
-                        <button
-                          type="button"
-                          className="btn btn-sm btn-outline-danger"
-                          onClick={() => setForm({ ...form, pagina_img_url: "" })}
-                          title="Remover imagem (usar cor de fundo)"
-                        >
-                          <i className="bi bi-x" />
-                        </button>
-                      )}
-                    </div>
-                    <small className="text-muted">Quando definida, substitui a cor de fundo</small>
-                  </div>
-
-                  {/* Preview da página pública */}
-                  <div className="col-12">
-                    <label className="form-label">Preview da página</label>
-                    <div
-                      className="rounded position-relative d-flex align-items-center justify-content-center"
-                      style={{
-                        height: 160,
-                        background: form.pagina_img_url
-                          ? `url(${form.pagina_img_url}) center/cover`
-                          : form.pagina_cor_fundo,
-                        borderRadius: 10,
-                        overflow: "hidden",
-                      }}
-                    >
-                      {form.pagina_img_url && (
-                        <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.4)" }} />
-                      )}
-                      <div
-                        className="card p-3 text-center position-relative"
-                        style={{ maxWidth: 240, borderRadius: 10, zIndex: 1 }}
-                      >
-                        <i className="bi bi-patch-check-fill text-primary" style={{ fontSize: 28 }} />
-                        <div className="fw-bold small mt-1">{form.pagina_titulo || "Título"}</div>
-                        <div className="text-muted" style={{ fontSize: 10 }}>{form.pagina_subtitulo || "Subtítulo"}</div>
-                        <div className="mt-2 bg-light rounded" style={{ height: 20, opacity: 0.7, fontSize: 9 }}>
-                          Campo de nome...
-                        </div>
-                      </div>
-                    </div>
-                  </div>
                 </div>
               </div>
               <div className="modal-footer">

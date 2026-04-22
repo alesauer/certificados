@@ -22,22 +22,22 @@ def get_config():
     turma = _get_turma_ativa()
     if not turma:
         return jsonify({"error": "Nenhuma turma ativa"}), 404
-    # Busca configurações globais
+    # Busca configurações globais (página pública + CPF)
     client = get_service_client()
-    cpf_obrigatorio = False
+    cfg_data = {}
     try:
-        cfg = client.table("configuracoes").select("cpf_obrigatorio").eq("id", 1).execute()
+        cfg = client.table("configuracoes").select("*").eq("id", 1).execute()
         if cfg.data:
-            cpf_obrigatorio = cfg.data[0].get("cpf_obrigatorio", False)
+            cfg_data = cfg.data[0]
     except Exception:
         pass
 
     return jsonify({
-        "pagina_titulo": turma.get("pagina_titulo") or "Emissão de Certificados",
-        "pagina_subtitulo": turma.get("pagina_subtitulo") or "Preencha os dados abaixo para gerar seu certificado",
-        "pagina_cor_fundo": turma.get("pagina_cor_fundo") or "#0f3460",
-        "pagina_img_url": turma.get("pagina_img_url") or "",
-        "cpf_obrigatorio": cpf_obrigatorio,
+        "pagina_titulo": cfg_data.get("pagina_titulo") or "Emissão de Certificados",
+        "pagina_subtitulo": cfg_data.get("pagina_subtitulo") or "Preencha os dados abaixo para gerar seu certificado",
+        "pagina_cor_fundo": cfg_data.get("pagina_cor_fundo") or "#0f3460",
+        "pagina_img_url": cfg_data.get("pagina_img_url") or "",
+        "cpf_obrigatorio": cfg_data.get("cpf_obrigatorio", False),
     }), 200
 
 

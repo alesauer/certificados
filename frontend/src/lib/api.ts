@@ -90,22 +90,6 @@ export async function adminUploadImagem(turmaId: string, file: File) {
   return res.json();
 }
 
-export async function adminUploadImagemPagina(turmaId: string, file: File) {
-  const headers = await authHeaders();
-  const form = new FormData();
-  form.append("imagem", file);
-  const res = await fetch(`${API_URL}/api/admin/turmas/${turmaId}/upload-imagem-pagina`, {
-    method: "POST",
-    headers,
-    body: form,
-  });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.error ?? "Erro ao fazer upload da imagem da página");
-  }
-  return res.json();
-}
-
 // ─── Admin — Certificados ──────────────────────────────────
 export async function adminGetCertificados(turmaId?: string) {
   const headers = await authHeaders();
@@ -153,5 +137,21 @@ export async function adminSalvarConfiguracoes(data: object) {
     body: JSON.stringify(data),
   });
   if (!res.ok) throw new Error("Erro ao salvar configurações");
+  return res.json();
+}
+
+export async function adminUploadImagemConfiguracoes(file: File) {
+  const headers = await authHeaders();
+  const form = new FormData();
+  form.append("imagem", file);
+  const res = await fetch(`${API_URL}/api/admin/configuracoes/upload-imagem-pagina`, {
+    method: "POST",
+    headers,
+    body: form,
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error ?? "Erro ao fazer upload da imagem");
+  }
   return res.json();
 }
